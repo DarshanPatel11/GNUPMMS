@@ -1,0 +1,57 @@
+{% load render_table from django_tables2 %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<table>
+
+    <tr>
+        <th> Project ID </th>
+        <th> Stage ID </th>
+        <th> Stage Name </th>
+        <th> Stage Sequence </th>
+        <th> File Upload </th>
+    </tr>
+{% for i in status1 %}
+
+{% if i.Status == 1 %}
+
+    <tr>
+
+        <td> {{pid }} </td>
+        <td> {{ i.StageID }}</td>
+        <td> {{ i.StageName }}</td>
+        <td> {{ i.ActivityType }}</td>
+
+        <td> <form method="POST" >
+
+        {% csrf_token %}
+        {{ form.as_p }}
+
+            <input type = text name="ProjectID" value="{{ pid }}" hidden>
+            <input type = text name = "StageID" value="{{ i.StageID.pk }}" hidden>
+            <input type = text name = "ActivityType" value="{{ i.ActivityType.pk }}" hidden>
+            <input type = text name = "CreatedBy" value="1" hidden>
+            <input type = text name = "ModifiedBy" value="1" hidden>
+
+
+        <button type="submit">Save</button>
+</form>   </td>
+{%  endif %}
+{% endfor %}
+
+
+    </tr>
+
+
+
+
+</table>
+
+
+</body>
+</html>

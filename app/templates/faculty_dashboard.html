@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% for i in stuproj %}
+
+    <tr>
+        <td>{{ i.ProjectID }}</td>
+    <td><a href="/app/stageApproval/{{ i.ProjectID }}">{{ i.ProjectName }} </a></td>
+      <td>{{ i.Subject }}</td>
+      <td>{{ i.Description }}</td>
+      <td>{{ i.InternalGuide }}</td>
+      <td>{{ i.HOD }}</td>
+      <td>{{ i.Principal }}</td>
+      <td>{{ i.ExternalGuide }}</td>
+      <td>{{ i.TeamLead }}</td>
+      <td>{{ i.Status }}</td>
+    </tr>
+
+{% endfor %}
+
+</body>
+</html>
