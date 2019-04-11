@@ -1,9 +1,10 @@
 from django.shortcuts import render, HttpResponse, redirect
-
+from django.db import connection, transaction
 from django.contrib.auth.forms import UserCreationForm
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from .models import ExternalUsers, ProjectMembers, Projects, ProjectToStageMapping, StageMaster, StageActivities
-from .forms import ExternalRegistration, FileUpload, ActivityApproval
+from .models import ExternalUsers,LoginMaster, ProjectMembers, Projects, ProjectToStageMapping, StageMaster, StageActivities
+from .forms import ExternalRegistration, FileUpload, ActivityApproval, LoginForm, RegisterStudent, \
+    LoginRegistrationForm, ProjectRegistration
 
 
 # Create your views here.
@@ -33,19 +34,77 @@ def viewExternalUser(request):
     extusr = ExternalUsers.objects.filter(ApprovalStatus=True)
     return render(request,'view_ext_user.html',locals())
 
+def studentRegistration(request):
+    if request.method == "POST":
+        form = RegisterStudent(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+    form = RegisterStudent()
+    return render(request, 'reg_student.html', {'form': form})
+
+def loginRegistration(request):
+
+    if request.method == 'POST':
+        form=LoginRegistrationForm(request.POST)
+        print(form.errors)
+        if form.is_valid():
+            print(form.cleaned_data)
+            id = form.cleaned_data['Login_ID']
+            pwd=form.cleaned_data['Password']
+            usertype=int(form.cleaned_data['User_Type'])
+            uid =int(form.cleaned_data['User_ID'])
+            cursor = connection.cursor()
+            if usertype == 1:
+
+                cursor.execute("INSERT INTO app_loginmaster ('LoginID','Password','DerivedUserFrom','StudentUserID','FacultyUserID','ExternalUserID','isActive') VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                               (str(id), str(pwd),usertype,uid,0,0,True))
+                print(usertype)
+                #form.save()
+                transaction.commit()
+                return HttpResponse("Student Registered successfully")
+            if usertype == 2:
+
+                cursor.execute("INSERT INTO app_loginmaster ('LoginID','Password','DerivedUserFrom','StudentUserID','FacultyUserID','ExternalUserID','isActive') VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                               (str(id), str(pwd),usertype,0,uid,0,True))
+                print(usertype)
+                #form.save()
+                transaction.commit()
+                return HttpResponse("Internal Faculty Registered successfully")
+            if usertype == 3:
+
+                cursor.execute("INSERT INTO app_loginmaster ('LoginID','Password','DerivedUserFrom','StudentUserID','FacultyUserID','ExternalUserID','isActive') VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                               (str(id), str(pwd),usertype,0,0,uid,True))
+                #form.save()
+                print(usertype)
+                transaction.commit()
+                return HttpResponse("External Faculty Registered successfully")
+
+    form=LoginRegistrationForm()
+    return render(request, 'reg_login.html', locals())
+
+def registerProject(request):
+    if request.method == "POST":
+        form = ProjectRegistration(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/app/studentDashboard')
+    form = ProjectRegistration()
+    return render(request, 'reg_project.html', {'form': form})
+
 def studentDashboard(request):
-    pid = ProjectMembers.objects.filter(TeamMember = 1).values('ProjectID')
+    pid = Projects.objects.filter(TermLead = request.session['id']).values('ProjectID')
     print(pid)
     stuproj = []
         #pid_list.append(pid[0]['ProjectID'])
     #print(pid)
     stuproj = Projects.objects.filter(ProjectID__in = pid).only('CollegeID','ProjectName')
-    print('ProjectName: ',str(stuproj[0]).split(' ')[1])
-    print('CollegeID: ', str(stuproj[0]).split(' ')[0])
+    #print('ProjectName: ',str(stuproj[0]).split(' ')[1])
+    #print('CollegeID: ', str(stuproj[0]).split(' ')[0])
     #stuproj= Projects.objects.select_related('InternalGuide')
     #stuproj.LinkColumn('ProjectName')
     #print(stuproj['InternalGuide'])
-    print(stuproj)
+    #print(stuproj)
     return render(request, 'student_dashboard.html', locals())
 
 
@@ -82,9 +141,14 @@ def handle_uploaded_file(f,fn):
 
 
 def facultyDashboard(request):
-    pid = Projects.objects.filter(InternalGuide = 1).values("ProjectID")
+    pid = Projects.objects.filter(InternalGuide = request.session['id']).values("ProjectID")
     stuproj = Projects.objects.filter(ProjectID__in=pid).only('CollegeID', 'ProjectName')
     return render(request,"faculty_dashboard.html",locals())
+
+def externalFacultyDashboard(request):
+    pid = Projects.objects.filter(ExternalGuide = 1).values("ProjectID")
+    stuproj = Projects.objects.filter(ProjectID__in=pid).only('CollegeID', 'ProjectName')
+    return render(request,"external_faculty_dashboard.html",locals())
 
 
 def facultyApproval(request,id):
@@ -131,3 +195,40 @@ def my_custom_sql(request,id):
     transaction.commit_unless_managed()
 
     return render(request, 'stageApproval.html', locals())
+
+
+def login(request):
+    #username = id
+    #passsword = pwd
+    if request.method=='POST':
+        form = LoginForm(request.POST)
+        print(form.errors)
+        if form.is_valid():
+            id = form.cleaned_data['Login_ID']
+            pwd = form.cleaned_data['Password']
+
+            flag = LoginMaster.objects.filter(LoginID=id,Password=pwd)
+            if flag:
+                request.session['username'] = id
+                role = LoginMaster.objects.filter(LoginID=id,Password=pwd).values("DerivedUserFrom")
+                print(role[0]['DerivedUserFrom'])
+                if role[0]['DerivedUserFrom'] == 1:
+                    request.session['id'] = LoginMaster.objects.filter(LoginID=id,Password=pwd).values("StudentUserID")[0]["StudentUserID"]
+                    return redirect('/app/studentDashboard')
+                elif role[0]['DerivedUserFrom'] == 2:
+                    request.session['id'] = LoginMaster.objects.filter(LoginID=id,Password=pwd).values("FacultyUserID")[0]["FacultyUserID"]
+                    return redirect('/app/facultyDashboard')
+                elif role[0]['DerivedUserFrom'] == 3:
+                    request.session['id'] = LoginMaster.objects.filter(LoginID=id,Password=pwd).values("ExternalUserID")[0]["ExternalUserID"]
+                    return redirect('/app/externalFacultyDashboard')
+
+    form = LoginForm()
+    return render(request, 'login.html', locals())
+
+def logout(request):
+    try:
+        del request.session['username']
+        del request.session['id']
+    except:
+        pass
+    return redirect('/app/login')
