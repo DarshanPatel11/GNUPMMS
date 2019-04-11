@@ -54,7 +54,7 @@ def stageDetails(request,id):
     stageid = ProjectToStageMapping.objects.filter(ProjectID = pid).values('StageID')
     stage = StageMaster.objects.filter(StageID__in = stageid)
     status1 = StageActivities.objects.filter(ProjectID=pid).filter( StageID__in=stageid)
-    print(stage)
+    #print(status1)
     if request.method == 'POST':
         form = FileUpload(request.POST, request.FILES)
         if form.is_valid():
@@ -62,7 +62,9 @@ def stageDetails(request,id):
             f = str(form.cleaned_data['ProjectID'])+'_'+str(form.cleaned_data['StageID'])+'_'+str(form.cleaned_data['File'])
             print(f)
             handle_uploaded_file(request.FILES['File'],f)
-
+            from django.db import connection, transaction
+            cursor = connection.cursor()
+            cursor.execute("UPDATE app_stageactivities SET Status = '1' WHERE ProjectID_id = %s and StageID_id= %s",(str(pid), str(form.cleaned_data["StageID"].pk)))
             form.save()
             return HttpResponse("File uploaded successfully")
     form = FileUpload()
@@ -91,8 +93,6 @@ def facultyApproval(request,id):
     stage = StageMaster.objects.filter(StageID__in=stageid)
     status1 = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid)
 
-
-
     if request.method == 'POST':
 
         form = ActivityApproval(request.POST)
@@ -108,8 +108,8 @@ def facultyApproval(request,id):
                 #print(status["StageID"].pk)
                 cursor.execute("UPDATE app_stageactivities SET Status = %s WHERE ProjectID_id = %s and StageID_id= %s",(str(status["Status"]), str(pid), str(status["StageID"].pk)))
                 transaction.commit()
-
-
+                cursor.execute("UPDATE app_stageactivities SET Status = 0 WHERE ProjectID_id = %s and StageID_id = %s", (str(pid), str(status["StageID"].pk + 1)))
+                transaction.commit()
     #        print(form.cleaned_data)
      #       form.save
                 return HttpResponse("Status Changed")
