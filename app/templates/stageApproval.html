@@ -7,6 +7,18 @@
     <title>Title</title>
 </head>
 <body>
+{% for i in status1 %}
+    {% if i.Status == -1 %}
+        <p>{{ i.StageID }} Stage is yet to be unlocked.</p>
+    {% endif %}
+{% if i.Status == 0 %}
+    <p>File is not uploaded for the {{ i.StageID }} Stage by Student yet.</p>
+{% endif %}
+{% if i.Status == 2 %}
+    <p>File is already Approved by you for the {{ i.StageID }} Stage.</p>
+{% endif %}
+
+{% if i.Status == 1 %}
 <table>
 
     <tr>
@@ -14,19 +26,15 @@
         <th> Stage ID </th>
         <th> Stage Name </th>
         <th> Stage Sequence </th>
-        <th> File Upload </th>
+        <th> Uploaded File </th>
     </tr>
-{% for i in status1 %}
-
-{% if i.Status == 1 %}
-
     <tr>
 
         <td> {{pid }} </td>
         <td> {{ i.StageID }}</td>
         <td> {{ i.StageName }}</td>
         <td> {{ i.ActivityType }}</td>
-
+        <td> <a href="/app/upload/{{ i.ProjectID }}_{{ i.StageID }}*">Click to See</a> </td>
         <td> <form method="POST" >
 
         {% csrf_token %}
