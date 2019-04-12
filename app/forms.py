@@ -1,6 +1,7 @@
 from django import forms
 
-from app.models import ExternalUsers, StageToFileMapping, StageActivities, Students, LoginMaster, Projects
+from app.models import ExternalUsers, StageToFileMapping, StageActivities, Students, LoginMaster, Projects, \
+    CollegeMaster, DepartmentMaster, ProcessMaster, TermMaster
 
 
 class ExternalRegistration(forms.ModelForm):
@@ -38,7 +39,14 @@ class LoginForm(forms.Form):
     Login_ID= forms.CharField(max_length=11)
     Password = forms.CharField(widget=forms.PasswordInput())
 
-class ProjectRegistration(forms.ModelForm):
-    class Meta:
-        model = Projects
-        fields = ('CollegeID','DepartmentID','ProcessID','TermID','TermLead','ProjectName','Subject','Description','InternalGuide','HOD','Principal','ExternalGuide','Dean','IsExternalProject')
+class ProjectRegistration(forms.Form):
+    College_ID = forms.ModelChoiceField(queryset=CollegeMaster.objects.all())
+    Department_ID = forms.ModelChoiceField(queryset=DepartmentMaster.objects.all())
+    Process_ID = forms.ModelChoiceField(queryset=ProcessMaster.objects.all())
+    Term_ID = forms.ModelChoiceField(queryset=TermMaster.objects.all())
+    Term_Lead = forms.IntegerField()
+    Project_Name = forms.CharField(max_length=50)
+    Subject = forms.CharField(max_length=50)
+    Description = forms.CharField(max_length=200)
+
+    #    fields = ('CollegeID','DepartmentID','ProcessID','TermID','TermLead','ProjectName','Subject','Description','InternalGuide','HOD','Principal','ExternalGuide','Dean','IsExternalProject')
