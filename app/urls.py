@@ -24,13 +24,13 @@ urlpatterns = [
 
     path('',views.login),
     path('app/',views.login), # new
-    path('app/login/',views.login),
     path('app/externalRegistration',views.externalRegistration),
     path('app/viewExternalUser',views.viewExternalUser),
     path('app/studentDashboard',views.studentDashboard),
     path('app/stageDetails/<id>',views.stageDetails),
     path('app/facultyDashboard',views.facultyDashboard),
     path('app/stageApproval/<id>',views.facultyApproval),
+    path('app/login/',views.login),
     path('app/logout/',views.logout),
     path('app/studentRegistration/',views.studentRegistration),
     path('app/loginRegistration/',views.loginRegistration),

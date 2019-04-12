@@ -5,7 +5,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .models import ExternalUsers,LoginMaster, ProjectMembers, Projects, ProjectToStageMapping, StageMaster, StageActivities
 from .forms import ExternalRegistration, FileUpload, ActivityApproval, LoginForm, RegisterStudent, \
     LoginRegistrationForm, ProjectRegistration
-
+from datetime import datetime
 
 # Create your views here.
 def register(request):
@@ -83,17 +83,64 @@ def loginRegistration(request):
     form=LoginRegistrationForm()
     return render(request, 'reg_login.html', locals())
 
+
+
 def registerProject(request):
     if request.method == "POST":
         form = ProjectRegistration(request.POST)
         if form.is_valid():
-            form.save()
+            #form.save()
+            cursor = connection.cursor()
+            CollegeID_id = form.cleaned_data["College_ID"].pk
+            DepartmentID_id = form.cleaned_data["Department_ID"].pk
+            ProcessID_id = form.cleaned_data["Process_ID"].pk
+            #print(ProcessID_id)
+            TermID_id = form.cleaned_data["Term_ID"].pk
+            TermLead = form.cleaned_data["Term_Lead"]
+            ProjectName = form.cleaned_data["Project_Name"]
+            Subject = form.cleaned_data["Subject"]
+            Description = form.cleaned_data["Description"]
+            InternalGuide_id = form.cleaned_data["Internal_Guide"].pk
+            HOD_id = form.cleaned_data["HOD"].pk
+            Principal_id = form.cleaned_data["Principal"].pk
+            ExternalGuide_id = form.cleaned_data["External_Guide"].pk
+            Dean_id = form.cleaned_data["Dean"].pk
+            IsExternalProject = str(form.cleaned_data["Is_External_Project"])
+
+            cursor.execute("INSERT INTO app_projects (CollegeID_id,DepartmentID_id,ProcessID_id,TermID_id,TermLead,ProjectName, Subject, Description, InternalGuide_id, HOD_id, Principal_id, ExternalGuide_id, Dean_id, IsExternalProject,Status,IsActive,CreatedDate,ModifiedDate,CreatedBy,ModifiedBy) VALUES (%s, %s, %s, %s, %s,%s,%s,%s,%s,%s, %s, %s, %s, %s,0,1,%s,%s,1,1)", (CollegeID_id,DepartmentID_id,ProcessID_id,TermID_id,TermLead,ProjectName, Subject, Description, InternalGuide_id, HOD_id, Principal_id, ExternalGuide_id, Dean_id, IsExternalProject,datetime.now(),datetime.now()))
+            transaction.commit()
+            r1 = cursor.execute("select max(ProjectID) from app_projects")
+            r1 = r1.fetchone()[0]
+            print('r1: ',r1)
+            row = cursor.execute("SELECT ProcessID_id FROM app_projects WHERE ProcessID_id = %s ",[str(form.cleaned_data['Process_ID'].pk)])
+            row = row.fetchone()
+            print('row',row[0])
+            r2 = cursor.execute("select StageID,StageName from app_stagemaster where ProcessID_id = %s ",[row[0]])
+            r2 = r2.fetchall()
+            print(r2)
+            r3 = []
+            counter = 0
+            for i in  r2:
+                if counter == 0:
+                    cursor.execute("insert into app_projecttostagemapping (ProjectID_id,StageID_id,StageName) VALUES (%s,%s,%s)",[r1,i[0],i[1]])
+                    transaction.commit()
+                    cursor.execute("insert into app_stageactivities (ProjectID_id,StageID_id,Status,ActivityType_id,CreatedDate,ModifiedDate,CreatedBy,ModifiedBy) VALUES (%s,%s,%s,%s,%s,%s,1,1)",[r1,str(i[0]),counter,str(i[0]),str(datetime.now()),str(datetime.now())])
+                    transaction.commit()
+                    counter = -1
+                else:
+                    cursor.execute("insert into app_projecttostagemapping (ProjectID_id,StageID_id,StageName) VALUES (%s,%s,%s)",[r1, i[0], i[1]])
+                    transaction.commit()
+                    cursor.execute("insert into app_stageactivities (ProjectID_id,StageID_id,Status,ActivityType_id,CreatedDate,ModifiedDate,CreatedBy,ModifiedBy) VALUES (%s,%s,-1,%s,%s,%s,1,1)",[r1,str(i[0]), str(i[0]),str(datetime.now()),str(datetime.now())])
+                    transaction.commit()
+
             return redirect('/app/studentDashboard')
     form = ProjectRegistration()
     return render(request, 'reg_project.html', {'form': form})
 
+
+
 def studentDashboard(request):
-    pid = Projects.objects.filter(TermLead = request.session['id']).values('ProjectID')
+    pid = Projects.objects.filter(TermLead = request.session['username']).values('ProjectID')
     print(pid)
     stuproj = []
         #pid_list.append(pid[0]['ProjectID'])

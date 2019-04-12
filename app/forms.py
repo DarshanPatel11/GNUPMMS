@@ -1,7 +1,7 @@
 from django import forms
 
 from app.models import ExternalUsers, StageToFileMapping, StageActivities, Students, LoginMaster, Projects, \
-    CollegeMaster, DepartmentMaster, ProcessMaster, TermMaster
+    CollegeMaster, DepartmentMaster, ProcessMaster, TermMaster, FacultyMaster
 
 
 class ExternalRegistration(forms.ModelForm):
@@ -48,5 +48,10 @@ class ProjectRegistration(forms.Form):
     Project_Name = forms.CharField(max_length=50)
     Subject = forms.CharField(max_length=50)
     Description = forms.CharField(max_length=200)
+    Internal_Guide = forms.ModelChoiceField(queryset=FacultyMaster.objects.all().filter(RoleID=4))
+    HOD = forms.ModelChoiceField(queryset=FacultyMaster.objects.all().filter(RoleID=3))
+    Principal = forms.ModelChoiceField(queryset=FacultyMaster.objects.all().filter(RoleID=2))
+    External_Guide = forms.ModelChoiceField(queryset=ExternalUsers.objects.all())
+    Dean = forms.ModelChoiceField(queryset=FacultyMaster.objects.all().filter(RoleID=1))
+    Is_External_Project = forms.BooleanField()  # Internal_Guide = forms.ModelChoiceField(queryset=FacultyMaster.objects.all().filter(RoleID = ))
 
-    #    fields = ('CollegeID','DepartmentID','ProcessID','TermID','TermLead','ProjectName','Subject','Description','InternalGuide','HOD','Principal','ExternalGuide','Dean','IsExternalProject')
