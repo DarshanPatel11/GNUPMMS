@@ -8,11 +8,13 @@
     <body>
         {% block title %}Login{% endblock %}
         {% block content %}
-            <h2>Login</h2>
-            <form method="post">
+            <h2 style="text-align: center">Login</h2>
+            <form method="post" class="card-panel grey lighten-4" style="width: 400px;margin:20px auto;">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit">Login</button>
+                <div style="text-align: center">
+                    <button type="submit" class="btn waves-effect waves-light" style="display: inline-block">Login</button>
+                </div>
             </form>
         {% endblock %}
     </body>
