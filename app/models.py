@@ -211,7 +211,7 @@ class StageToFileMapping(models.Model):
     uploadID = models.AutoField(primary_key=True)
     ProjectID = models.ForeignKey(Projects,on_delete=models.CASCADE)
     StageID = models.ForeignKey(StageMaster,on_delete=models.CASCADE)
-    File = models.FileField()
+    File = models.FileField(upload_to='upload/')
     FileName = models.CharField(max_length=200)
     FilePath = models.CharField(max_length=200)
     UploadedBy = models.CharField(max_length=200)

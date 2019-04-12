@@ -14,9 +14,7 @@
 {% if i.Status == 0 %}
     <p>File is not uploaded for the {{ i.StageID }} Stage by Student yet.</p>
 {% endif %}
-{% if i.Status == 2 %}
-    <p>File is already Approved by you for the {{ i.StageID }} Stage.</p>
-{% endif %}
+
 
 {% if i.Status == 1 %}
 <table>
@@ -34,7 +32,7 @@
         <td> {{ i.StageID }}</td>
         <td> {{ i.StageName }}</td>
         <td> {{ i.ActivityType }}</td>
-        <td> <a href="/app/upload/{{ i.ProjectID }}_{{ i.StageID }}*">Click to See</a> </td>
+        <td> <a href="/app/download/{{ file }}">Click to See</a> </td>
         <td> <form method="POST" >
 
         {% csrf_token %}
@@ -43,13 +41,16 @@
             <input type = text name="ProjectID" value="{{ pid }}" hidden>
             <input type = text name = "StageID" value="{{ i.StageID.pk }}" hidden>
             <input type = text name = "ActivityType" value="{{ i.ActivityType.pk }}" hidden>
-            <input type = text name = "CreatedBy" value="1" hidden>
-            <input type = text name = "ModifiedBy" value="1" hidden>
+            <input type = text name = "CreatedBy" value={{ request.session.username }} hidden>
+            <input type = text name = "ModifiedBy" value={{ request.session.username }} hidden>
 
 
         <button type="submit">Save</button>
 </form>   </td>
 {%  endif %}
+    {% if i.Status == 2 %}
+    <p>File is already Approved by you for the {{ i.StageID }} Stage.</p>
+{% endif %}
 {% endfor %}
 
 

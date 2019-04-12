@@ -39,8 +39,8 @@
             <input type = text name="ProjectID" value="{{ pid }}" hidden>
             <input type = text name = "StageID" value="{{ i.StageID.pk }}" hidden>
             <input type = text name = "FileName" value="{{ pid}}_{{ i.StageID.pk }}" hidden>
-            <input type = text name = "FilePath" value="app/upload/{{pid }}_{{ i.StageID }}" hidden>
-            <input type = text name = "UploadedBy" value=1 hidden>
+            <input type = text name = "FilePath" value="app/upload/{{pid }}_{{ i.StageID.pk }}" hidden>
+            <input type = text name = "UploadedBy" value={{ request.session.username }} hidden>
         <button type="submit" class="save btn btn-default">Save</button>
 </form>   </td>
             </tr> </table>

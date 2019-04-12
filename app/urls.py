@@ -19,7 +19,8 @@ from django.views.generic.base import TemplateView # new
 from django.conf.urls import url
 from app import views
 #from django.contrib.auth.views import login,logout
-
+from django.conf import settings
+from django.conf.urls.static import static
 urlpatterns = [
 
     path('',views.login),
@@ -35,10 +36,12 @@ urlpatterns = [
     path('app/studentRegistration/',views.studentRegistration),
     path('app/loginRegistration/',views.loginRegistration),
     path('app/registerProject/',views.registerProject),
-
+    path('app/download/<file>', views.download),
 
     #url(r'^login/$', auth_views.login, name='login'),
 
     #url(r'^logout/$', auth_views.logout, name='logout'),
 
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -27,7 +27,7 @@ class FileUpload(forms.ModelForm):
         model = StageToFileMapping
 
         fields=('ProjectID','FileName','File','FilePath','StageID','UploadedBy')
-        widgets={'ProjectID': forms.HiddenInput(),'FileName': forms.HiddenInput(),'StageID': forms.HiddenInput(),'FilePath': forms.HiddenInput() }
+        widgets={'ProjectID': forms.HiddenInput(),'FileName': forms.HiddenInput(),'StageID': forms.HiddenInput(),'FilePath': forms.HiddenInput() ,'UploadedBy': forms.HiddenInput()}
 
 class ActivityApproval(forms.ModelForm):
     class Meta:
@@ -44,7 +44,7 @@ class ProjectRegistration(forms.Form):
     Department_ID = forms.ModelChoiceField(queryset=DepartmentMaster.objects.all())
     Process_ID = forms.ModelChoiceField(queryset=ProcessMaster.objects.all())
     Term_ID = forms.ModelChoiceField(queryset=TermMaster.objects.all())
-    Term_Lead = forms.IntegerField()
+    Term_Lead = forms.HiddenInput()
     Project_Name = forms.CharField(max_length=50)
     Subject = forms.CharField(max_length=50)
     Description = forms.CharField(max_length=200)
@@ -54,4 +54,3 @@ class ProjectRegistration(forms.Form):
     External_Guide = forms.ModelChoiceField(queryset=ExternalUsers.objects.all())
     Dean = forms.ModelChoiceField(queryset=FacultyMaster.objects.all().filter(RoleID=1))
     Is_External_Project = forms.BooleanField()  # Internal_Guide = forms.ModelChoiceField(queryset=FacultyMaster.objects.all().filter(RoleID = ))
-
