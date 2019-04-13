@@ -1,16 +1,49 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-</head>
-<body>
-<main>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="{% static 'app/style.css' %}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+        <style>
+            body {
+                display: flex;
+                min-height: 100vh;
+                flex-direction: column;
+            }
+            main {
+                flex: 1 0 auto;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- header -->
+        <nav>
+            <div class="nav-wrapper amber darken-1">
+              <a href="#" class="brand-logo"><img src="{% static "app/logo.jpg"%}" style="height: 64px;vertical-align:bottom;" alt="Ganpat University Logo"> GNU PMMS </a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                    {% block navbar %}
+                    {% endblock %}
+                </ul>
+            </div>
+        </nav>
+        <!-- main content goes here -->
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+        <!-- footer -->
+        <footer class="page-footer amber">
+              <div class="footer-copyright amber darken-2">
+                © 2019 Copyright: Nilakshi Sahai,Harshil Shah, Bharat Patidar, Viveka Kumar, Darshan Patel
+              </div>
+        </footer>
+        <!-- jquery scripts of materialize.css -->
+        <script
+          src="https://code.jquery.com/jquery-3.3.1.min.js"
+          integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+          crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
-    {% block content %}
-    {% endblock %}
-</main>
-</body>
+    </body>
 </html>

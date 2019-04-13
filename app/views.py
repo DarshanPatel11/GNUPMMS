@@ -235,13 +235,16 @@ def facultyApproval(request, id):
     stageid = ProjectToStageMapping.objects.filter(ProjectID=pid).values('StageID')
     stage = StageMaster.objects.filter(StageID__in=stageid)
     status1 = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid)
-    current_stage = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid).filter(Status=1)
-    current_stage = current_stage[0]
-    # print("current stage",current_stage)
-    current_stage = StageMaster.objects.filter(pk=str(current_stage))
-    #print(pid, current_stage[0])
-    file = StageToFileMapping.objects.filter(ProjectID=pid, StageID=current_stage[0].pk).values("uploadID","FilePath", "File")
+    current_stage = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid).filter(Status=1).values("StageID")
+    try:
+        current_stage = current_stage[0]["StageID"]
+        # print("current stage",current_stage)
+        current_stage = StageMaster.objects.filter(pk=str(current_stage))
+        #print(pid, current_stage[0])
+        file = StageToFileMapping.objects.filter(ProjectID=pid, StageID=current_stage[0].pk).values("uploadID","FilePath", "File")
     #print(file[0]["uploadID"])
+    except:
+        pass
     try:
         file = file[0]["uploadID"]
     except:

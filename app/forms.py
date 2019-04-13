@@ -27,7 +27,7 @@ class FileUpload(forms.ModelForm):
         model = StageToFileMapping
 
         fields=('ProjectID','FileName','File','FilePath','StageID','UploadedBy')
-        widgets={'ProjectID': forms.HiddenInput(),'FileName': forms.HiddenInput(),'StageID': forms.HiddenInput(),'FilePath': forms.HiddenInput() ,'UploadedBy': forms.HiddenInput()}
+        widgets={'ProjectID': forms.HiddenInput(),'FileName': forms.HiddenInput(),'StageID': forms.HiddenInput(),'FilePath': forms.HiddenInput(),'UploadedBy': forms.HiddenInput()}
 
 class ActivityApproval(forms.ModelForm):
     class Meta:
@@ -38,6 +38,7 @@ class ActivityApproval(forms.ModelForm):
 class LoginForm(forms.Form):
     Login_ID= forms.CharField(max_length=11)
     Password = forms.CharField(widget=forms.PasswordInput())
+
 
 class ProjectRegistration(forms.Form):
     College_ID = forms.ModelChoiceField(queryset=CollegeMaster.objects.all())

@@ -1,66 +1,90 @@
+{% extends 'base.html' %}
 {% load render_table from django_tables2 %}
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-{% for i in status1 %}
-    {% if i.Status == -1 %}
-        <p>{{ i.StageID }} Stage is yet to be unlocked.</p>
-    {% endif %}
-{% if i.Status == 0 %}
-    <p>File is not uploaded for the {{ i.StageID }} Stage by Student yet.</p>
-{% endif %}
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+    </head>
+    <body>
+        {% block navbar %}
+            <li><a href="/app/logout">Logout</a></li>
+        {% endblock %}
+        {% block content %}
+            <div class="main-container">
+                <section id="timeline" class="timeline-outer">
+                    <div class="container" id="content">
+                        <div class="row">
+                            <div class="col s12 m12 l12">
+                                <ul class="timeline">
+                                    {% for i in status1 %}
 
+                                        {% if i.Status == -1 %}
+                                            <li class="event empty">
+                                                <h3>{{ i.StageID }} Stage is yet to be unlocked.</h3>
+                                            </li>
+                                        {% endif %}
 
-{% if i.Status == 1 %}
-<table>
+                                        {% if i.Status == 0 %}
+                                            <li class="event notdone">
+                                                <h3>File is not uploaded for the {{ i.StageID }} Stage by Student yet.</h3>
+                                            </li>
+                                        {% endif %}
 
-    <tr>
-        <th> Project ID </th>
-        <th> Stage ID </th>
-        <th> Stage Name </th>
-        <th> Stage Sequence </th>
-        <th> Uploaded File </th>
-    </tr>
-    <tr>
+                                        {% if i.Status == 2 %}
+                                            <li class="event temp">
+                                                <h3>File is already Approved by you for the {{ i.StageID }} Stage.</h3>
+                                            </li>
+                                        {% endif %}
 
-        <td> {{pid }} </td>
-        <td> {{ i.StageID }}</td>
-        <td> {{ i.StageName }}</td>
-        <td> {{ i.ActivityType }}</td>
-        <td> <a href="/app/download/{{ file }}">Click to See</a> </td>
-        <td> <form method="POST" >
+                                        {% if i.Status == 1 %}
+                                            <li class="event temp">
+                                                <h3>Current Stage</h3>
+                                            </li>
+                                            <table style="margin: 20px">
+                                                <tr>
+                                                    <th> Project ID </th>
+                                                    <th> Stage Name </th>
+                                                    <th> Stage Sequence </th>
+                                                    <th> Uploaded File </th>
+                                                    <th> Set Status </th>
+                                                </tr>
+                                                <tr>
+                                                    <td> {{pid }} </td>
+                                                    <td> {{ i.StageID }}</td>
+                                                    <td> {{ i.ActivityType }}</td>
+                                                    <td> <a href="/app/download/{{ file }}">Click to See</a> </td>
+                                                    <td>
+                                                        <form method="POST" style="margin: 20px">
+                                                            <style>
+                                                                select {
+                                                                    display: block;
+                                                                }
+                                                            </style>
+                                                            {% csrf_token %}
+                                                            {{ form.as_p }}
+                                                            <input type = text name="ProjectID" value="{{ pid }}" hidden>
+                                                            <input type = text name = "StageID" value="{{ i.StageID.pk }}" hidden>
+                                                            <input type = text name = "ActivityType" value="{{ i.ActivityType.pk }}" hidden>
+                                                            <input type = text name = "CreatedBy" value="{{ request.session.username }}" hidden>
+                                                            <input type = text name = "ModifiedBy" value="{{ request.session.username }}" hidden>
+                                                            <button type="submit" class="btn waves-effect waves-light">Save</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        {% endif %}
 
-        {% csrf_token %}
-        {{ form.as_p }}
-
-            <input type = text name="ProjectID" value="{{ pid }}" hidden>
-            <input type = text name = "StageID" value="{{ i.StageID.pk }}" hidden>
-            <input type = text name = "ActivityType" value="{{ i.ActivityType.pk }}" hidden>
-            <input type = text name = "CreatedBy" value={{ request.session.username }} hidden>
-            <input type = text name = "ModifiedBy" value={{ request.session.username }} hidden>
-
-
-        <button type="submit">Save</button>
-</form>   </td>
-{%  endif %}
-    {% if i.Status == 2 %}
-    <p>File is already Approved by you for the {{ i.StageID }} Stage.</p>
-{% endif %}
-{% endfor %}
-
-
-    </tr>
-
-
-
-
-</table>
-
-
-</body>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <br/>
+            </div>
+        {% endblock %}
+    </body>
 </html>
