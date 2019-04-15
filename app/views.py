@@ -6,7 +6,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .models import ExternalUsers, LoginMaster, ProjectMembers, Projects, ProjectToStageMapping, StageMaster, \
     StageActivities, StageToFileMapping
 from .forms import ExternalRegistration, FileUpload, ActivityApproval, LoginForm, RegisterStudent, \
-    LoginRegistrationForm, ProjectRegistration
+   LoginRegistrationForm, ProjectRegistration
 from datetime import datetime
 
 
@@ -177,6 +177,11 @@ def stageDetails(request, id):
     stageid = ProjectToStageMapping.objects.filter(ProjectID=pid).values('StageID')
     stage = StageMaster.objects.filter(StageID__in=stageid)
     status1 = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid)
+    from django.db import connection, transaction
+    cursor = connection.cursor()
+    row = cursor.execute("select grade from app_evaluationgrades where  StudentLoginID_id =%s",[request.session['id']])
+    row = row.fetchone()
+    row = row[0]
     # print(status1)
     if request.method == 'POST':
         form = FileUpload(request.POST, request.FILES)
@@ -237,44 +242,73 @@ def facultyApproval(request, id):
     status1 = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid)
     current_stage = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid).filter(Status=1).values("StageID")
     try:
-        current_stage = current_stage[0]["StageID"]
-        # print("current stage",current_stage)
+        current_stage = current_stage[0]['StageID']
+        print("current stage",current_stage)
         current_stage = StageMaster.objects.filter(pk=str(current_stage))
-        #print(pid, current_stage[0])
+        print(pid, current_stage)
         file = StageToFileMapping.objects.filter(ProjectID=pid, StageID=current_stage[0].pk).values("uploadID","FilePath", "File")
     #print(file[0]["uploadID"])
     except:
-        pass
-    try:
-        file = file[0]["uploadID"]
-    except:
-        pass
+        try:
+            file = file[0]["uploadID"]
+        except:
+            pass
     #print("FilePath", file[0]["FilePath"], "File", file[0]["File"])
     #file = file[0]["File"]
     if request.method == 'POST':
 
         form = ActivityApproval(request.POST)
+        from django.db import transaction,connection
+        cursor = connection.cursor()
+        row = cursor.execute(
+            "Select CollegeID_id,TermLead,DepartmentID_id,TermID_id from app_projects where ProjectID = %s", [pid])
+        row = row.fetchone()
+        print(row)
+        print('abc : ',status1.values("StageActivityID")[0]['StageActivityID'])
+        form.StageID = r1 = current_stage[0].pk
+        form.StageActivityID= r2 = status1.values("StageActivityID")[0]['StageActivityID']
+        form.StudentLoginID = r3 = row[1]
+        form.CollegeID = r4 = row[0]
+        form.DepartmentID = r5 = row[2]
+        form.CurrentTerm = r6 = row[3]
+        form.CreatedBy = request.session['username']
+        print('r1-6: ',r1,r2,r3,r4,r5,r6)
+        row = cursor.execute("select StudentID from app_students where EnrollmentNumber = %s",[r3]).fetchone()
+        r3 = row[0]
+        print('r3 : ',r3)
+        print(form.errors)
         print(form.errors)
 
-        if form.is_valid():
-            from django.db import connection, transaction
-            cursor = connection.cursor()
-            if form.is_valid():
-                status = form.cleaned_data
 
-                # Data modifying operation - commit required
-                # print(status["StageID"].pk)
-                cursor.execute("UPDATE app_stageactivities SET Status = %s WHERE ProjectID_id = %s and StageID_id= %s",
-                               (str(status["Status"]), str(pid), str(status["StageID"].pk)))
-                transaction.commit()
-                cursor.execute("UPDATE app_stageactivities SET Status = 0 WHERE ProjectID_id = %s and StageID_id = %s",
-                               (str(pid), str(status["StageID"].pk + 1)))
-                transaction.commit()
-                #        print(form.cleaned_data)
-                #       form.save
-                return HttpResponse("Status Changed")
+        print("test: ",form.cleaned_data)
+
+
+
+        if form.is_valid():
+            status = form.cleaned_data
+            print("cs : ",current_stage[0].pk)
+            csp1 = current_stage[0].pk+1
+            #form.Grade = status["Grade"]
+            # Data modifying operation - commit required
+            # print(status["StageID"].pk)
+            print("form clean data : ",form.cleaned_data)
+            cursor.execute("UPDATE app_stageactivities SET Status = %s WHERE ProjectID_id = %s and StageID_id= %s",
+                           (str(status["Status"]), str(pid), str(current_stage[0].pk)))
+            transaction.commit()
+            cursor.execute("UPDATE app_stageactivities SET Status = 0 WHERE ProjectID_id = %s and StageID_id = %s",
+                           (str(pid), str(csp1)))
+            transaction.commit()
+            #        print(form.cleaned_data)
+            #       form.save
+            cursor.execute("insert into app_evaluationgrades (Grade,CreatedDate,ModifiedDate,CollegeID_id,CurrentTerm_id,DepartmentID_id,ProjectID_id,StageActivityID_id,StudentLoginID_id,CreatedBy) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                           [status["Grade"],datetime.now(),datetime.now(),r4,r6,r5,pid,r2,r3,request.session['username']])
+            transaction.commit()
+
+            return HttpResponse("Status Changed")
     form = ActivityApproval()
+
     return render(request, 'stageApproval.html', locals())
+
 
 
 def my_custom_sql(request, id):
@@ -334,6 +368,7 @@ def logout(request):
     except:
         pass
     return redirect('/app/login')
+
 
 def download(request, file):
     from app.models import StageToFileMapping
