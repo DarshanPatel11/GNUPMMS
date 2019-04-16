@@ -179,9 +179,12 @@ def stageDetails(request, id):
     status1 = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid)
     from django.db import connection, transaction
     cursor = connection.cursor()
-    row = cursor.execute("select grade from app_evaluationgrades where  StudentLoginID_id =%s",[request.session['id']])
-    row = row.fetchone()
-    row = row[0]
+    try:
+        row = cursor.execute("select grade from app_evaluationgrades where  StudentLoginID_id =%s",[request.session['id']])
+        row = row.fetchone()
+        row = row[0]
+    except:
+        pass
     # print(status1)
     if request.method == 'POST':
         form = FileUpload(request.POST, request.FILES)
@@ -249,10 +252,11 @@ def facultyApproval(request, id):
         file = StageToFileMapping.objects.filter(ProjectID=pid, StageID=current_stage[0].pk).values("uploadID","FilePath", "File")
     #print(file[0]["uploadID"])
     except:
-        try:
-            file = file[0]["uploadID"]
-        except:
-            pass
+        pass
+    try:
+        file = file[0]["uploadID"]
+    except:
+        pass
     #print("FilePath", file[0]["FilePath"], "File", file[0]["File"])
     #file = file[0]["File"]
     if request.method == 'POST':
