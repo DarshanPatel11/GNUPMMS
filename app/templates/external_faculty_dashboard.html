@@ -7,7 +7,7 @@
 </head>
 <body>
 {% if not request.session.username %}
-    {% block content %}
+    {% block content1 %}
         <p>You are not Logged In.</p>
         <a href="/app/login">Login</a>
     {% endblock %}

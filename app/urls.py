@@ -30,6 +30,7 @@ urlpatterns = [
     path('app/studentDashboard',views.studentDashboard),
     path('app/stageDetails/<id>',views.stageDetails),
     path('app/facultyDashboard',views.facultyDashboard),
+    path('app/externalFacultyDashboard',views.externalFacultyDashboard),
     path('app/stageApproval/<id>',views.facultyApproval),
     path('app/login/',views.login),
     path('app/logout/',views.logout),

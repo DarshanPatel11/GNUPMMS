@@ -39,23 +39,27 @@
 
                                         <tr>
                                             <th> Project ID</th>
-                                            <th> Stage ID</th>
+                                            <!--<th> Stage ID</th>-->
                                             <th> Stage Name</th>
-                                            <th> Stage Sequence</th>
+                                            <!--<th> Stage Sequence</th>-->
                                             <th> Uploaded File</th>
                                         </tr>
                                         <tr>
 
                                             <td> {{ pid }} </td>
                                             <td> {{ i.StageID }}</td>
-                                            <td> {{ i.StageName }}</td>
-                                            <td> {{ i.ActivityType }}</td>
+                                            <!--<td> {{ i.StageName }}</td> -->
+                                            <!--<td> {{ i.ActivityType }}</td>-->
                                             <td><a href="/app/download/{{ file }}">Click to See</a></td>
                                             <td>
                                                 <form method="POST">
 
                                                     {% csrf_token %}
-                                                    {{ form2.as_p }}
+                                                    <style>
+                select {
+                    display: block;
+                }
+            </style>
                                                     {{ form.as_p }}
 
                                                     <input type=text name="ProjectID" value="{{ pid }}" hidden>
