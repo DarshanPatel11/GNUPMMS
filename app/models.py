@@ -176,7 +176,7 @@ class ExternalUsers(models.Model):
     ApprovalStatus = models.BooleanField(default=False)# rejected?
     IsActive = models.BooleanField(default=True)
     CreatedDate = models.DateTimeField(auto_now_add=True)
-    ActionTakenBy = models.IntegerField()
+    ActionTakenBy = models.IntegerField(default=1)
 
     def __str__(self):
         return str(self.ExternalUserID) + " " + str(self.ExternalUserName)

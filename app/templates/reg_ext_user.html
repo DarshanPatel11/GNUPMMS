@@ -6,6 +6,7 @@
     <title>Title</title>
 </head>
 <body>
+
 {% block content %}
 
     <div class="card-panel grey lighten-4" style="width: 400px;margin:20px auto;">
@@ -17,6 +18,7 @@
                 }
             </style>
             {{ form.as_p }}
+            <input type="number" value="1" name="ActionTakenBy" hidden>
              <div style="text-align: center">
                 <button type="submit" class="btn waves-effect waves-light" style="display: inline-block">Register</button>
             </div>

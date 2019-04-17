@@ -27,7 +27,21 @@ def register(request):
 def externalRegistration(request):
     if request.method == "POST":
         form = ExternalRegistration(request.POST)
+        form.ActionTakenBy = 1
+        print(form.errors)
         if form.is_valid():
+            '''
+            id = form.cleaned_data["ExternalUserName"]
+            pwd = form.cleaned_data[""]
+            cursor = connection.cursor()
+            cursor.execute(
+                "INSERT INTO app_loginmaster ('LoginID','Password','DerivedUserFrom','StudentUserID','FacultyUserID','ExternalUserID','isActive') VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                (str(id), str(pwd), usertype, 0, 0, uid, True))
+            # form.save()
+            transaction.commit()
+            form.save()
+            return HttpResponse("External Faculty Registered successfully")
+            '''
             form.save()
             return redirect('/')
     form = ExternalRegistration()
@@ -67,7 +81,7 @@ def loginRegistration(request):
                 print(usertype)
                 # form.save()
                 transaction.commit()
-                return HttpResponse("Student Registered successfully")
+                return render(request, 'generic_message.html', {'message': 'Student Registered successfully'})
             if usertype == 2:
                 cursor.execute(
                     "INSERT INTO app_loginmaster ('LoginID','Password','DerivedUserFrom','StudentUserID','FacultyUserID','ExternalUserID','isActive') VALUES (%s,%s,%s,%s,%s,%s,%s)",
@@ -75,7 +89,7 @@ def loginRegistration(request):
                 print(usertype)
                 # form.save()
                 transaction.commit()
-                return HttpResponse("Internal Faculty Registered successfully")
+                return render(request, 'generic_message.html', {'message': 'Internal Faculty Registered successfully'})
             if usertype == 3:
                 cursor.execute(
                     "INSERT INTO app_loginmaster ('LoginID','Password','DerivedUserFrom','StudentUserID','FacultyUserID','ExternalUserID','isActive') VALUES (%s,%s,%s,%s,%s,%s,%s)",
@@ -83,7 +97,7 @@ def loginRegistration(request):
                 # form.save()
                 print(usertype)
                 transaction.commit()
-                return HttpResponse("External Faculty Registered successfully")
+                return render(request, 'generic_message.html', {'message': 'External Faculty Registered successfully'})
 
     form = LoginRegistrationForm()
     return render(request, 'reg_login.html', locals())
@@ -100,7 +114,7 @@ def registerProject(request):
             ProcessID_id = form.cleaned_data["Process_ID"].pk
             # print(ProcessID_id)
             TermID_id = form.cleaned_data["Term_ID"].pk
-            #TermLead = form.cleaned_data["Term_Lead"]
+            # TermLead = form.cleaned_data["Term_Lead"]
             ProjectName = form.cleaned_data["Project_Name"]
             Subject = form.cleaned_data["Subject"]
             Description = form.cleaned_data["Description"]
@@ -177,6 +191,15 @@ def stageDetails(request, id):
     stageid = ProjectToStageMapping.objects.filter(ProjectID=pid).values('StageID')
     stage = StageMaster.objects.filter(StageID__in=stageid)
     status1 = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid)
+    from django.db import connection, transaction
+    cursor = connection.cursor()
+    try:
+        row = cursor.execute("select grade from app_evaluationgrades where  StudentLoginID_id =%s",
+                             [request.session['id']])
+        row = row.fetchone()
+        row = row[0]
+    except:
+        pass
     # print(status1)
     if request.method == 'POST':
         form = FileUpload(request.POST, request.FILES)
@@ -184,27 +207,26 @@ def stageDetails(request, id):
             print(form.cleaned_data)
             f = str(form.cleaned_data['ProjectID'].pk) + '_' + str(form.cleaned_data['StageID'].pk) + '_' + str(
                 form.cleaned_data['File'].name)
-            #print(f)
-            #form.FileName = request.FILES['File'].name
-            #print(request.FILES['File'].path)
+            # print(f)
+            # form.FileName = request.FILES['File'].name
+            # print(request.FILES['File'].path)
             ProjectID_id = str(form.cleaned_data['ProjectID'].pk)
             StageID_id = str(form.cleaned_data['StageID'].pk)
             FileName = str(ProjectID_id) + '_' + str(StageID_id) + '_' + str(request.FILES['File'].name)
             FilePath = handle_uploaded_file(request.FILES['File'], FileName)
-            #UploadedBy = str(form.cleaned_data['UploadedBy'])
+            # UploadedBy = str(form.cleaned_data['UploadedBy'])
 
-            #File = request.FILES['File']
+            # File = request.FILES['File']
             form.FileName = FileName
             from django.db import connection, transaction
             cursor = connection.cursor()
-            #cursor.execute("INSERT INTO app_stagetofilemapping (FilePath, UploadedBy, ProjectID_id, StageID_id, FileName, File) VALUES (%s, %s, %s, %s, %s, %s)",
-                           #(FilePath, UploadedBy, ProjectID_id, StageID_id, FileName, File))
+            # cursor.execute("INSERT INTO app_stagetofilemapping (FilePath, UploadedBy, ProjectID_id, StageID_id, FileName, File) VALUES (%s, %s, %s, %s, %s, %s)",
+            # (FilePath, UploadedBy, ProjectID_id, StageID_id, FileName, File))
             cursor.execute("UPDATE app_stageactivities SET Status = '1' WHERE ProjectID_id = %s and StageID_id= %s",
                            (str(pid), str(form.cleaned_data["StageID"].pk)))
             transaction.commit()
             form.save()
-
-            return HttpResponse("File uploaded successfully")
+            return render(request, 'generic_message.html', {'message': 'File uploaded successfully'})
     form = FileUpload()
 
     return render(request, 'stage_detail.html', locals())
@@ -225,7 +247,9 @@ def facultyDashboard(request):
 
 
 def externalFacultyDashboard(request):
-    pid = Projects.objects.filter(ExternalGuide=1).values("ProjectID")
+    print("External Id:", request.session['id'])
+    pid = Projects.objects.filter(ExternalGuide=request.session['id']).values("ProjectID")
+    print("pid", pid)
     stuproj = Projects.objects.filter(ProjectID__in=pid).only('CollegeID', 'ProjectName')
     return render(request, "external_faculty_dashboard.html", locals())
 
@@ -235,45 +259,77 @@ def facultyApproval(request, id):
     stageid = ProjectToStageMapping.objects.filter(ProjectID=pid).values('StageID')
     stage = StageMaster.objects.filter(StageID__in=stageid)
     status1 = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid)
-    current_stage = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid).filter(Status=1).values("StageID")
+    current_stage = StageActivities.objects.filter(ProjectID=pid).filter(StageID__in=stageid).filter(Status=1).values(
+        "StageID")
     try:
-        current_stage = current_stage[0]["StageID"]
-        # print("current stage",current_stage)
+        current_stage = current_stage[0]['StageID']
+        print("current stage", current_stage)
         current_stage = StageMaster.objects.filter(pk=str(current_stage))
-        #print(pid, current_stage[0])
-        file = StageToFileMapping.objects.filter(ProjectID=pid, StageID=current_stage[0].pk).values("uploadID","FilePath", "File")
-    #print(file[0]["uploadID"])
+        print(pid, current_stage)
+        file = StageToFileMapping.objects.filter(ProjectID=pid, StageID=current_stage[0].pk).values("uploadID",
+                                                                                                    "FilePath", "File")
+    # print(file[0]["uploadID"])
     except:
         pass
     try:
         file = file[0]["uploadID"]
     except:
         pass
-    #print("FilePath", file[0]["FilePath"], "File", file[0]["File"])
-    #file = file[0]["File"]
+    # print("FilePath", file[0]["FilePath"], "File", file[0]["File"])
+    # file = file[0]["File"]
     if request.method == 'POST':
 
         form = ActivityApproval(request.POST)
-        print(form.errors)
+        from django.db import transaction, connection
+        cursor = connection.cursor()
+        row = cursor.execute(
+            "Select CollegeID_id,TermLead,DepartmentID_id,TermID_id from app_projects where ProjectID = %s", [pid])
+        row = row.fetchone()
+        print(row)
+        # print('abc : ',status1.values("StageActivityID")[0]['StageActivityID'])
+        try:
+            form.StageID = r1 = current_stage[0].pk
+            form.StageActivityID = r2 = status1.values("StageActivityID")[0]['StageActivityID']
+            form.StudentLoginID = r3 = row[1]
+            form.CollegeID = r4 = row[0]
+            form.DepartmentID = r5 = row[2]
+            form.CurrentTerm = r6 = row[3]
+            form.CreatedBy = request.session['username']
+            print('r1-6: ', r1, r2, r3, r4, r5, r6)
+            row = cursor.execute("select StudentID from app_students where EnrollmentNumber = %s", [r3]).fetchone()
+            r3 = row[0]
+            print('r3 : ', r3)
+            print(form.errors)
+            print(form.errors)
+
+            print("test: ", form.cleaned_data)
+        except:
+            pass
 
         if form.is_valid():
-            from django.db import connection, transaction
-            cursor = connection.cursor()
-            if form.is_valid():
-                status = form.cleaned_data
+            status = form.cleaned_data
+            # print("cs : ",current_stage[0].pk)
+            csp1 = current_stage[0].pk + 1
+            # form.Grade = status["Grade"]
+            # Data modifying operation - commit required
+            # print(status["StageID"].pk)
+            print("form clean data : ", form.cleaned_data)
+            cursor.execute("UPDATE app_stageactivities SET Status = %s WHERE ProjectID_id = %s and StageID_id= %s",
+                           (str(status["Status"]), str(pid), str(current_stage[0].pk)))
+            transaction.commit()
+            cursor.execute("UPDATE app_stageactivities SET Status = 0 WHERE ProjectID_id = %s and StageID_id = %s",
+                           (str(pid), str(csp1)))
+            transaction.commit()
+            #        print(form.cleaned_data)
+            #       form.save
+            cursor.execute(
+                "insert into app_evaluationgrades (Grade,CreatedDate,ModifiedDate,CollegeID_id,CurrentTerm_id,DepartmentID_id,ProjectID_id,StageActivityID_id,StudentLoginID_id,CreatedBy) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                [status["Grade"], datetime.now(), datetime.now(), r4, r6, r5, pid, r2, r3, request.session['username']])
+            transaction.commit()
+            return render(request, 'generic_message.html', {'message': 'Status Changed'})
 
-                # Data modifying operation - commit required
-                # print(status["StageID"].pk)
-                cursor.execute("UPDATE app_stageactivities SET Status = %s WHERE ProjectID_id = %s and StageID_id= %s",
-                               (str(status["Status"]), str(pid), str(status["StageID"].pk)))
-                transaction.commit()
-                cursor.execute("UPDATE app_stageactivities SET Status = 0 WHERE ProjectID_id = %s and StageID_id = %s",
-                               (str(pid), str(status["StageID"].pk + 1)))
-                transaction.commit()
-                #        print(form.cleaned_data)
-                #       form.save
-                return HttpResponse("Status Changed")
     form = ActivityApproval()
+
     return render(request, 'stageApproval.html', locals())
 
 
@@ -312,15 +368,16 @@ def login(request):
                 print(role[0]['DerivedUserFrom'])
                 if role[0]['DerivedUserFrom'] == 1:
                     request.session['id'] = \
-                    LoginMaster.objects.filter(LoginID=id, Password=pwd).values("StudentUserID")[0]["StudentUserID"]
+                        LoginMaster.objects.filter(LoginID=id, Password=pwd).values("StudentUserID")[0]["StudentUserID"]
                     return redirect('/app/studentDashboard')
                 elif role[0]['DerivedUserFrom'] == 2:
                     request.session['id'] = \
-                    LoginMaster.objects.filter(LoginID=id, Password=pwd).values("FacultyUserID")[0]["FacultyUserID"]
+                        LoginMaster.objects.filter(LoginID=id, Password=pwd).values("FacultyUserID")[0]["FacultyUserID"]
                     return redirect('/app/facultyDashboard')
                 elif role[0]['DerivedUserFrom'] == 3:
                     request.session['id'] = \
-                    LoginMaster.objects.filter(LoginID=id, Password=pwd).values("ExternalUserID")[0]["ExternalUserID"]
+                        LoginMaster.objects.filter(LoginID=id, Password=pwd).values("ExternalUserID")[0][
+                            "ExternalUserID"]
                     return redirect('/app/externalFacultyDashboard')
 
     form = LoginForm()
@@ -334,6 +391,7 @@ def logout(request):
     except:
         pass
     return redirect('/app/login')
+
 
 def download(request, file):
     from app.models import StageToFileMapping
