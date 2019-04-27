@@ -177,7 +177,7 @@ def studentDashboard(request):
         if form.is_valid():
             process = form.cleaned_data["ProcessName"]
             print("Process", process)
-            pid = Projects.objects.filter(TermLead=request.session['username']).values('ProjectID')
+            pid = Projects.objects.filter(TermLead=request.session['username'],ProcessID=process).values("ProjectID")
             print(pid)
             stuproj = []
             # pid_list.append(pid[0]['ProjectID'])
@@ -256,7 +256,7 @@ def facultyDashboard(request):
         if form.is_valid():
             process = form.cleaned_data["ProcessName"]
             print("Process", process)
-            pid = Projects.objects.filter(InternalGuide=request.session['id']).values("ProjectID")
+            pid = Projects.objects.filter(InternalGuide=request.session['id'],ProcessID=process).values("ProjectID")
             stuproj = Projects.objects.filter(ProjectID__in=pid).only('CollegeID', 'ProjectName')
     form = ProcessSelect()
 
