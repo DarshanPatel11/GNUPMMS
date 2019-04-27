@@ -71,3 +71,6 @@ class ProjectRegistration(forms.Form):
     External_Guide = forms.ModelChoiceField(queryset=ExternalUsers.objects.all())
     Dean = forms.ModelChoiceField(queryset=FacultyMaster.objects.all().filter(RoleID=1))
     Is_External_Project = forms.BooleanField()  # Internal_Guide = forms.ModelChoiceField(queryset=FacultyMaster.objects.all().filter(RoleID = ))
+
+class ProcessSelect(forms.Form):
+    ProcessName = forms.ModelChoiceField(queryset=ProcessMaster.objects.all())

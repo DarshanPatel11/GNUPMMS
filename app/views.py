@@ -6,7 +6,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .models import ExternalUsers, LoginMaster, ProjectMembers, Projects, ProjectToStageMapping, StageMaster, \
     StageActivities, StageToFileMapping
 from .forms import ExternalRegistration, FileUpload, ActivityApproval, LoginForm, RegisterStudent, \
-    LoginRegistrationForm, ProjectRegistration
+    LoginRegistrationForm, ProjectRegistration, ProcessSelect
 from datetime import datetime
 
 
@@ -171,18 +171,26 @@ def registerProject(request):
 
 
 def studentDashboard(request):
-    pid = Projects.objects.filter(TermLead=request.session['username']).values('ProjectID')
-    print(pid)
-    stuproj = []
-    # pid_list.append(pid[0]['ProjectID'])
-    # print(pid)
-    stuproj = Projects.objects.filter(ProjectID__in=pid).only('CollegeID', 'ProjectName')
-    # print('ProjectName: ',str(stuproj[0]).split(' ')[1])
-    # print('CollegeID: ', str(stuproj[0]).split(' ')[0])
-    # stuproj= Projects.objects.select_related('InternalGuide')
-    # stuproj.LinkColumn('ProjectName')
-    # print(stuproj['InternalGuide'])
-    # print(stuproj)
+    if request.method=='POST':
+        form = ProcessSelect(request.POST)
+        print(form.errors)
+        if form.is_valid():
+            process = form.cleaned_data["ProcessName"]
+            print("Process", process)
+            pid = Projects.objects.filter(TermLead=request.session['username']).values('ProjectID')
+            print(pid)
+            stuproj = []
+            # pid_list.append(pid[0]['ProjectID'])
+            # print(pid)
+            stuproj = Projects.objects.filter(ProjectID__in=pid).only('CollegeID', 'ProjectName')
+            # print('ProjectName: ',str(stuproj[0]).split(' ')[1])
+            # print('CollegeID: ', str(stuproj[0]).split(' ')[0])
+            # stuproj= Projects.objects.select_related('InternalGuide')
+            # stuproj.LinkColumn('ProjectName')
+            # print(stuproj['InternalGuide'])
+            # print(stuproj)
+    form = ProcessSelect()
+
     return render(request, 'student_dashboard.html', locals())
 
 
@@ -242,16 +250,31 @@ def handle_uploaded_file(f, fn):
 
 
 def facultyDashboard(request):
-    pid = Projects.objects.filter(InternalGuide=request.session['id']).values("ProjectID")
-    stuproj = Projects.objects.filter(ProjectID__in=pid).only('CollegeID', 'ProjectName')
+    if request.method=='POST':
+        form = ProcessSelect(request.POST)
+        print(form.errors)
+        if form.is_valid():
+            process = form.cleaned_data["ProcessName"]
+            print("Process", process)
+            pid = Projects.objects.filter(InternalGuide=request.session['id']).values("ProjectID")
+            stuproj = Projects.objects.filter(ProjectID__in=pid).only('CollegeID', 'ProjectName')
+    form = ProcessSelect()
+
     return render(request, "faculty_dashboard.html", locals())
 
 
 def externalFacultyDashboard(request):
     print("External Id:", request.session['id'])
-    pid = Projects.objects.filter(ExternalGuide=request.session['id']).values("ProjectID")
-    print("pid", pid)
-    stuproj = Projects.objects.filter(ProjectID__in=pid).only('CollegeID', 'ProjectName')
+    if request.method=='POST':
+        form = ProcessSelect(request.POST)
+        print(form.errors)
+        if form.is_valid():
+            process = form.cleaned_data["ProcessName"]
+            print("Process", process)
+            pid = Projects.objects.filter(ExternalGuide=request.session['id'], ProcessID=process).values("ProjectID")
+            print("pid", pid)
+            stuproj = Projects.objects.filter(ProjectID__in=pid).only('CollegeID', 'ProjectName')
+    form = ProcessSelect()
     return render(request, "external_faculty_dashboard.html", locals())
 
 
