@@ -21,10 +21,25 @@
     {% endif %}
     {% if request.session.username %}
         <h5>Hello {{ request.session.username }}</h5>
+        {% if not process %}
+        <p>Select Process</p>
+            <form method="post">
+            {% csrf_token %}
+                <style>
+                select {
+                    display: block;
+                }
+            </style>
+            {{ form.as_p }}
+            <button type="submit" class="btn waves-effect waves-light">Submit
+                                                    </button>
+            </form>
+        {% endif %}
+        {% if process %}
         {% if stuproj %}
             <table>
                 <tr>
-                    <th> Project ID</th>
+
                     <th> Project Name</th>
                     <th> Subject</th>
                     <th> Description</th>
@@ -39,7 +54,6 @@
                 {% for i in stuproj %}
 
                     <tr>
-                        <td>{{ i.ProjectID }}</td>
                         <td><a href="/app/stageDetails/{{ i.ProjectID }}">{{ i.ProjectName }} </a></td>
                         <td>{{ i.Subject }}</td>
                         <td>{{ i.Description }}</td>
@@ -54,6 +68,7 @@
                 {% endfor %}
             </table>
         {% endif %}
+    {% endif %}
     {% endif %}
 {% endblock %}
 </body>
